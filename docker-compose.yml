@@ -1,0 +1,48 @@
+version: '3.1'
+services:
+    api:
+        build: ./api
+        container_name: api
+        command: python3 api.py
+        hostname: 0.0.0.0
+        restart: always
+        environment:
+            - 127.0.0.1
+        links:
+            - mongodb
+        networks:
+          - backend
+
+    mongodb:
+        image: mongo
+        container_name: mongodb
+        hostname: 0.0.0.0
+        volumes:
+            - "./database:/docker-entrypoint-initdb.d/init.sql"
+        environment:
+            - 0.0.0.0
+        ports:
+            - "27017:27017"
+        expose:
+            - "27017"
+        restart: unless-stopped
+        networks:
+          - backend
+
+    router:
+        image: "nginx:latest"
+        ports:
+            - "80:80"
+        links:
+            - api
+        volumes:
+            - ./router:/etc/nginx/conf.d:Z
+        networks:
+          - backend
+
+networks:
+  backend:
+    driver: bridge
+
+
+
